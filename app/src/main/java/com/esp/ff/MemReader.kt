@@ -30,17 +30,12 @@ class MemReader {
         true
     } catch (_: Exception) { false }
 
-    fun getModuleBase(pid: Int, modName: String): Long {
-        try {
-            File("/proc/$pid/maps").forEachLine { line ->
-                if (line.contains(modName) && line.contains("r-xp")) {
-                    val addr = line.substringBefore('-').toLongOrNull(16)
-                    if (addr != null) return addr
-                }
-            }
-        } catch (_: Exception) {}
-        return 0L
-    }
+    fun getModuleBase(pid: Int, modName: String): Long = try {
+        File("/proc/$pid/maps").readLines()
+            .firstOrNull { it.contains(modName) && it.contains("r-xp") }
+            ?.substringBefore('-')
+            ?.toLongOrNull(16) ?: 0L
+    } catch (_: Exception) { 0L }
 
     // ── low-level read ────────────────────────────────────────────────────────
     private fun buf(addr: Long, size: Int): ByteBuffer? {
