@@ -1,0 +1,44 @@
+name: Build FF ESP APK
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esp-fre-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publicar en Releases
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk EspFre.apk
+          gh release delete ultima --yes --cleanup-tag || true
+          gh release create ultima EspFre.apk \
+            --target "$GITHUB_SHA" \
+            --latest \
+            --title "ESP Free Fire (última versión)" \
+            --notes "Descarga **EspFre.apk** e instálalo. Compilado desde ${GITHUB_REF_NAME} (${GITHUB_SHA::7})."
