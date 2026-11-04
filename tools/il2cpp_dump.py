@@ -18,13 +18,12 @@ def cstr(d, idx):
     end = d.index(b'\x00', idx)
     return d[idx:end].decode('utf-8', errors='replace')
 
+# Búsqueda amplia — ajustar si los nombres no matchean
 TARGETS = {
-    "FightingFighter", "FightingFighterManager", "FighterManager",
-    "BaseCameraController", "CameraController", "GameCamera",
-    "PlayerManager", "PlayerController", "BattlePlayer",
-    "RoleProperty", "RoleStatus", "PlayerInfo",
-    "FightingCamera", "MainCameraCtrl", "FightingGameManager",
-    "FightingFighterList", "FighterList",
+    "Fighter", "Player", "Character", "Role", "Hero",
+    "Camera", "BattleManager", "GameManager", "FightingManager",
+    "EntityManager", "ActorManager", "CharacterManager",
+    "HP", "Health", "Alive", "Dead",
 }
 
 def main():
