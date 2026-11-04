@@ -28,23 +28,21 @@ class ControlView(ctx: Context,
     private val pSliderBg = Paint().apply { color = Color.argb(140,50,50,70); style = Paint.Style.FILL }
     private val pSliderFg = Paint().apply { color = Color.argb(220,0,180,230); style = Paint.Style.FILL }
 
-    private var dragDx = 0f; private var dragDy = 0f; private var dragging = false
+    private var dragDx  = 0f; private var dragDy  = 0f
+    private var downRx  = 0f; private var downRy  = 0f   // rawX/Y at DOWN
+    private var didDrag = false                           // true si se movió >8px
 
     override fun onMeasure(w: Int, h: Int) = setMeasuredDimension(W.toInt(), H.toInt())
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawRoundRect(0f,0f,W,H,16f,16f, pBg)
 
-        // ESP toggle
-        drawToggle(canvas, "ESP",    espOn,    10f, 12f)
-        // Aimbot toggle
-        drawToggle(canvas, "AIM",    aimbotOn, 120f,12f)
+        drawToggle(canvas, "ESP", espOn,    10f,  12f)
+        drawToggle(canvas, "AIM", aimbotOn, 120f, 12f)
 
-        // FOV slider (aimbot FOV 20..120)
         canvas.drawText("FOV %.0f°".format(fov), 12f, 80f, pText)
         drawSlider(canvas, 10f, 88f, W-20f, 14f, (fov-20f)/100f)
 
-        // Smooth slider (0.05..0.5)
         canvas.drawText("Smooth %.2f".format(smooth), 12f, 130f, pText)
         drawSlider(canvas, 10f, 138f, W-20f, 14f, (smooth-0.05f)/0.45f)
 
@@ -65,22 +63,21 @@ class ControlView(ctx: Context,
     override fun onTouchEvent(e: MotionEvent): Boolean {
         when (e.action) {
             MotionEvent.ACTION_DOWN -> {
-                dragDx = e.rawX - x; dragDy = e.rawY - y; dragging = true
+                dragDx  = e.rawX - x; dragDy = e.rawY - y
+                downRx  = e.rawX;     downRy = e.rawY
+                didDrag = false
             }
-            MotionEvent.ACTION_MOVE -> if (dragging) {
-                x = e.rawX - dragDx; y = e.rawY - dragDy
+            MotionEvent.ACTION_MOVE -> {
+                val dx = e.rawX - downRx; val dy = e.rawY - downRy
+                if (!didDrag && dx*dx + dy*dy > 64f) didDrag = true  // 8px threshold
+                if (didDrag) { x = e.rawX - dragDx; y = e.rawY - dragDy }
             }
             MotionEvent.ACTION_UP -> {
-                if (!dragging) return true
-                dragging = false
+                if (didDrag) return true   // era drag, no tap
                 val lx = e.x; val ly = e.y
-                // ESP toggle tap
-                if (lx in 10f..100f && ly in 12f..48f) { espOn = !espOn; onEspToggle(espOn); invalidate() }
-                // Aimbot toggle tap
-                if (lx in 120f..210f && ly in 12f..48f) { aimbotOn = !aimbotOn; onAimbotToggle(aimbotOn); invalidate() }
-                // FOV slider tap
-                if (ly in 88f..102f) { fov = 20f + ((lx-10f)/(W-20f)).coerceIn(0f,1f)*100f; onFovChange(fov); invalidate() }
-                // Smooth slider tap
+                if (lx in 10f..100f  && ly in 12f..48f)  { espOn = !espOn; onEspToggle(espOn); invalidate() }
+                if (lx in 120f..210f && ly in 12f..48f)  { aimbotOn = !aimbotOn; onAimbotToggle(aimbotOn); invalidate() }
+                if (ly in 88f..102f)  { fov    = 20f   + ((lx-10f)/(W-20f)).coerceIn(0f,1f)*100f;  onFovChange(fov);       invalidate() }
                 if (ly in 138f..152f) { smooth = 0.05f + ((lx-10f)/(W-20f)).coerceIn(0f,1f)*0.45f; onSmoothChange(smooth); invalidate() }
             }
         }
