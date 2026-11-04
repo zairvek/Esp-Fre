@@ -3,24 +3,27 @@
 gg.setVisible(false)
 gg.alert("FF OFFSET FINDER v3\n\nEstar EN PARTIDA con HP lleno.\nToca OK para comenzar.")
 
--- ===== PASO 1: capturar maxHP = 1000.0 =====
+-- ===== PASO 1: capturar maxHP (200.0 en FF) =====
+-- HP maximo base en Free Fire = 200. Con habilidades puede ser 200-230.
+local MAXHP = "200"  -- cambiar si tu personaje tiene max HP diferente
+
 gg.clearResults()
-gg.searchNumber("1000", gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
+gg.searchNumber(MAXHP, gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
 local n1 = gg.getResultCount()
 if n1 == 0 then
-    gg.alert("No encontre 1000.0. Verifica estar en partida con HP lleno."); return
+    gg.alert("No encontre " .. MAXHP .. ".0. Verifica estar en partida con HP lleno."); return
 end
-gg.toast(n1 .. " valores 1000.0. Recibe dano ahora...")
+gg.toast(n1 .. " valores " .. MAXHP .. ".0. Recibe dano ahora...")
 gg.alert("Recibe DANO para que tu HP baje.\nToca OK cuando tu HP ya bajo.")
 
--- Mantener solo los que siguen siendo 1000.0 (son los maxHP)
-gg.searchNumber("1000", gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
+-- Mantener solo los que siguen siendo 200.0 (son los maxHP)
+gg.searchNumber(MAXHP, gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
 local n2 = gg.getResultCount()
 local maxhp = gg.getResults(math.min(n2, 20))
 gg.toast(#maxhp .. " candidatos maxHP")
 
 if #maxhp < 2 then
-    gg.alert("Solo " .. #maxhp .. " candidato(s).\nNecesito 2+ jugadores con maxHP 1000."); return
+    gg.alert("Solo " .. #maxhp .. " candidato(s).\nNecesito 2+ jugadores con HP lleno."); return
 end
 
 -- ===== PASO 2: votar por klass_ptr =====
